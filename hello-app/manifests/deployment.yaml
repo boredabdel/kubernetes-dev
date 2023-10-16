@@ -1,21 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: leeroy-web
+  name: helloapp
   labels:
-    app: leeroy-web
+    app: helloapp
+  namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: leeroy-web
+      app: helloapp
   template:
     metadata:
       labels:
-        app: leeroy-web
+        app: helloapp
     spec:
       containers:
-        - name: leeroy-web
-          image: leeroy-web
+        - name: helloapp
+          image: helloapp:latest
           ports:
             - containerPort: 8080

@@ -1,0 +1,129 @@
+
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ include "whereami.fullname" . }}
+  name: {{ include "whereami.fullname" . }}
+  namespace: {{.Release.Namespace}}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "whereami.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "whereami.fullname" . }}
+        version: v1
+    spec:
+      serviceAccountName: {{ include "whereami.fullname" . }}
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+      - name: whereami
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - all
+          privileged: false
+          readOnlyRootFilesystem: true
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+        ports:
+          {{- if .Values.config.grpc.enabled }}
+          - name: grpc
+            containerPort: 9090
+          {{- end }}
+          - name: http
+            containerPort: 8080
+        {{- if .Values.config.grpc.enabled }}
+        readinessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:9090"]
+          initialDelaySeconds: 5
+        livenessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:9090"]
+          initialDelaySeconds: 10
+        {{- else }}
+        livenessProbe:
+          httpGet:
+              path: /healthz
+              port: 8080
+              scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 15
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        {{- end }}
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: POD_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+          - name: BACKEND_ENABLED
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "whereami.fullname" . }}
+                key: BACKEND_ENABLED
+          - name: BACKEND_SERVICE
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "whereami.fullname" . }}
+                key: BACKEND_SERVICE
+          - name: METADATA
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "whereami.fullname" . }}
+                key: METADATA
+          - name: ECHO_HEADERS
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "whereami.fullname" . }}
+                key: ECHO_HEADERS
+          - name: GRPC_ENABLED
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "whereami.fullname" . }}
+                key: GRPC_ENABLED
+          - name: TRACE_SAMPLING_RATIO
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "whereami.fullname" . }}
+                key: TRACE_SAMPLING_RATIO

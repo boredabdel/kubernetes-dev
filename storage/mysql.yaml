@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+type: Opaque
+data:
+  password: UGFzc3dvcmQkMTIzNDU2 # Password$123456
+  admin-password: UGFzc3dvcmQkMTIzNDU2 # Password$123456
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: sql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: sql
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.gke.io/zone
+                operator: NotIn
+                values:
+                - europe-west1-d
+      containers:
+      - image: mysql:5.6
+        name: mysql
+        env:
+          # Use secret in real usage
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: admin-password
+        - name: MYSQL_DATABASE
+          value: wordpress
+        - name: MYSQL_USER
+          value: mysql
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: password
+        resources:
+          limits:
+            #cpu: "1000m"
+            #memory: "2.5G"
+            cpu: "500m"
+            memory: "1000M"
+          requests:
+            cpu: "500m"
+            memory: "500M"
+        readinessProbe:
+          exec:
+            command:
+            - bash
+            - "-c"
+            - |
+              mysql -h127.0.0.1 -uroot -p$MYSQL_ROOT_PASSWORD -e'SELECT 1'
+          initialDelaySeconds: 5
+          periodSeconds: 2
+          timeoutSeconds: 1
+        livenessProbe:
+          exec:
+            command:
+            - bash
+            - "-c"
+            - |
+              mysqladmin -uroot -p$MYSQL_ROOT_PASSWORD ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: regional-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: regional-storage
+        persistentVolumeClaim:
+          claimName: regional-pvc

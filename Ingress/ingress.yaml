@@ -1,0 +1,26 @@
+# apiVersion: networking.k8s.io/v1beta1 # for k3s < v1.19
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: whereami
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: allthingopen.com
+    http:
+      paths:
+      - path: /foo
+        pathType: Prefix
+        backend:
+          service:
+            name: foo
+            port:
+              number: 8080
+      - path: /bar
+        pathType: Prefix
+        backend:
+          service:
+            name: bar
+            port:
+              number: 8080

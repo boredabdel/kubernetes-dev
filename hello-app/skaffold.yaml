@@ -1,0 +1,13 @@
+apiVersion: skaffold/v4beta5
+kind: Config
+metadata:
+  name: hello-app
+build:
+  artifacts:
+    - image: helloapp
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - manifests/deployment.yaml
+    - manifests/service.yaml
