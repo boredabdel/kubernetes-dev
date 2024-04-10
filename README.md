@@ -38,9 +38,9 @@ kubectl get nodes
 
 kubectl run nginx --image nginx
 
-kubectl get pods -n metallb-system
-
 kubectl apply -f metalLB/LB.yaml
+
+kubectl get pods -n metallb-system
 
 ### k3d
 
@@ -60,7 +60,7 @@ skaffold dev --default-repo k3d-mycluster-registry.localhost:5432
 
 k3d cluster delete local-cluster
 
-<!-- ### New kube Version
+### New kube Version
 
 kubectl version
 
@@ -68,16 +68,17 @@ k3d cluster create --config k3d-config-1.27.yaml --registry-create 127-mycluster
 
 kubectl version -->
 
-<!-- ### Deply to new version
+### Deply to new version
 
 kubectx
 
-skaffold dev --default-repo k3d-127-mycluster-registry.localhost:5433 -->
+skaffold dev --default-repo k3d-127-mycluster-registry.localhost:5433
 
 ### Cleanup
 
 docker network prune
 cd ..
+
 ## Ingress
 
 k3d cluster create --api-port 6550 -p "8081:80@loadbalancer" --agents 2
@@ -86,8 +87,8 @@ kubectl apply -f Ingress/apps.yaml
 kubectl apply -f Ingress/ingress.yaml
 
 kubectl get ing
-curl --header "Host: jspring.io" http://192.168.8.2/foo
-curl --header "Host: jspring.io" http://192.168.8.2/bar
+curl --header "Host: devnexus.com" http://192.168.8.2/foo
+curl --header "Host: devnexus.com" http://192.168.8.2/bar
 
 <!-- ### Draft
 
@@ -96,8 +97,8 @@ draft create
 skaffold init -->
 
 ### Telepresence
-gcloud container clusters get-credentials cosign --zone europe-north1-a
-kubectx cosign-cluster=gke_boredabdel-lab_europe-north1-a_cosign
+gcloud container clusters get-credentials cosign-demo --zone europe-north1-a --project boredabdel-lab
+kubectx cosign-cluster=gke_boredabdel-lab_europe-north1-a_cosign-demo
 kubectx cosign-cluster
 kubectl apply -f telepresence/deployment.yaml
 telepresence connect

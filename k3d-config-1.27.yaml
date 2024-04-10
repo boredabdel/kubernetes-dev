@@ -1,10 +1,10 @@
 apiVersion: k3d.io/v1alpha5 # this will change in the future as we make everything more stable
 kind: Simple # internally, we also have a Cluster config, which is not yet available externally
 metadata:
-  name: local-cluster-1.27 # name that you want to give to your cluster (will still be prefixed with `k3d-`)
+  name: local-cluster-1.28 # name that you want to give to your cluster (will still be prefixed with `k3d-`)
 servers: 1 # same as `--servers 1`
 agents: 2 # same as `--agents 2`
-image: rancher/k3s:v1.27.3-rc1-k3s1 # same as `--image rancher/k3s:v1.20.4-k3s1`
+image: rancher/k3s:v1.28.8-k3s1 # same as `--image rancher/k3s:v1.20.4-k3s1`
 #kubeAPI: # same as `--api-port myhost.my.domain:6445` (where the name would resolve to 127.0.0.1)
 #   host: "myhost.my.domain" # important for the `server` setting in the kubeconfig
 #   hostIP: "127.0.0.1" # where the Kubernetes API will be listening on
